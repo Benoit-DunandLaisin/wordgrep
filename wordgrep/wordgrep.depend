@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1350211911 source:/home/koulben/.developpements/projets_Perso/wordgrep/wordgrep/main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+

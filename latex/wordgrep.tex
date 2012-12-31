@@ -1,0 +1,331 @@
+% !TEX TS-program = pdflatex
+% !TEX encoding = UTF-8 Unicode
+
+% This is a simple template for a LaTeX document using the "article" class.
+% See "book", "report", "letter" for other types of document.
+
+\documentclass[11pt]{article} % use larger type; default would be 10pt
+
+\usepackage[utf8]{inputenc} % set input encoding (not needed with XeLaTeX)
+
+%%% Examples of Article customizations
+% These packages are optional, depending whether you want the features they provide.
+% See the LaTeX Companion or other references for full information.
+
+%%% PAGE DIMENSIONS
+\usepackage{geometry} % to change the page dimensions
+\geometry{a4paper} % or letterpaper (US) or a5paper or....
+% \geometry{margin=2in} % for example, change the margins to 2 inches all round
+% \geometry{landscape} % set up the page for landscape
+%   read geometry.pdf for detailed page layout information
+
+\usepackage{graphicx} % support the \includegraphics command and options
+
+% \usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
+
+%%% PACKAGES
+\usepackage{booktabs} % for much better looking tables
+\usepackage{array} % for better arrays (eg matrices) in maths
+\usepackage{paralist} % very flexible & customisable lists (eg. enumerate/itemize, etc.)
+\usepackage{verbatim} % adds environment for commenting out blocks of text & for better verbatim
+\usepackage{subfig} % make it possible to include more than one captioned figure/table in a single float
+% These packages are all incorporated in the memoir class to one degree or another...
+
+%%% HEADERS & FOOTERS
+\usepackage{fancyhdr} % This should be set AFTER setting up the page geometry
+\pagestyle{fancy} % options: empty , plain , fancy
+\renewcommand{\headrulewidth}{0pt} % customise the layout...
+\lhead{}\chead{}\rhead{}
+\lfoot{}\cfoot{\thepage}\rfoot{}
+
+%%% SECTION TITLE APPEARANCE
+\usepackage{sectsty}
+\allsectionsfont{\sffamily\mdseries\upshape} % (See the fntguide.pdf for font help)
+% (This matches ConTeXt defaults)
+
+%%% ToC (table of contents) APPEARANCE
+\usepackage[nottoc,notlof,notlot]{tocbibind} % Put the bibliography in the ToC
+\usepackage[titles,subfigure]{tocloft} % Alter the style of the Table of Contents
+\renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}
+\renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape} % No bold!
+
+%%% END Article customizations
+
+%%% The "real" document content comes below...
+
+\title{wordgrep utility's specifications}
+\author{Benoît Dunand-Laisin}
+%\date{} % Activate to display a given date or no date (if empty),
+         % otherwise the current date is printed 
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+\section{Specifications}
+Write a utility with the following syntax:
+
+      wordgrep dictfile [inputfile ...]
+
+wordgrep parses a dictionary file as follows:
+\begin{itemize}
+\item a line with a single word defines a word to be found in the input stream
+\item empty lines and line starting with \# are ignored
+\end{itemize}
+   wordgrep then filters (to the standard output) its input stream, the
+   concatenation of all input files specified on the command line or standard
+   input if none is given.  wordgrep outputs any line from the input streams that
+   contains one of the words from the dictfile. Matching is performed on a full
+   word basis.  Words are delimited by white space.
+
+   Implementation should be simple and efficient, dictionary size should be
+   limited only by memory,
+
+      An arbitrary limit on line length is OK for the dictionary, but should
+   be unnecessary on input stream. 
+
+\section{Existing alternatives}
+Why not try this:
+grep -wf dictfile [inputfile ...]
+
+\section{Test cases}
+
+\subsection{Without any parameter}
+\begin{tabular}{|c|c|}
+\hline
+Command line &
+wordgrep\\
+\hline
+dictfile content &
+n/a\\
+\hline
+file(s) content &
+n/a\\
+\hline
+Error output &
+Without a dictionnary file, there is nothing to do\\
+\hline
+Standard output &
+No output\\
+\hline
+\end{tabular}
+
+\subsection{With an empty dictfile and one file}
+\begin{tabular}{|c|c|}
+\hline
+Command line &
+wordgrep dictfileEmpty fileA\\
+\hline
+dictfile content &
+\\
+\hline
+file(s) content &
+Never mind\\
+\hline
+Error output &
+Dictionnary file is empty, there is nothing to do\\
+\hline
+Standard output &
+No output\\
+\hline
+\end{tabular}
+
+\subsection{With a dictfile and one file}
+\begin{tabular}{|c|c|}
+\hline
+Command line &
+wordgrep dictfile fileA\\
+\hline
+dictfile content &
+Toto\\
+&TITI\\
+\hline
+file(s) content & I like Toto's joke.\\
+&However, some on them are not funny.\\
+&Toto + Toto = Toto's head\\
+&Funny isn't it?\\
+\hline
+Error output &
+No error\\
+\hline
+Standard output &Toto + Toto = Toto's head\\
+\hline
+\end{tabular}
+\\Note: First line doesn't appear in output because the word is Toto's and not Toto.
+
+\subsection{With a dictfile and more than one file}
+\begin{tabular}{|c|c|}
+\hline
+Command line &
+wordgrep dictfile fileB fileC\\
+\hline
+dictfile content &
+Toto\\
+&TITI\\
+\hline
+file(s) content & \begin{bf}fileB\end{bf}\\
+& I like Toto's joke.\\
+&However, some on them are not funny.\\
+& \begin{bf}fileC\end{bf}\\
+&Toto + Toto = Toto's head\\
+&Funny isn't it?\\
+\hline
+Error output &
+No error\\
+\hline
+Standard output &Toto + Toto = Toto's head\\
+\hline
+\end{tabular}
+
+\subsection{With a dictfile and no file}
+\begin{tabular}{|c|c|}
+\hline
+Command line &
+wordgrep dictfile\\
+\hline
+dictfile content &
+Toto\\
+&TITI\\
+\hline
+file(s) content & n/a\\
+\hline
+Error output &
+No error\\
+\hline
+Standard output &????\\
+\hline
+\end{tabular}
+
+\subsection{With a missing dictfile and one file}
+\begin{tabular}{|c|c|}
+\hline
+Command line &
+wordgrep dictfile2 fileA\\
+\hline
+dictfile content &n/a\\
+\hline
+file(s) content & Never mind\\
+\hline
+Error output &
+The given dictfile is missing.\\
+\hline
+Standard output &No output\\
+\hline
+\end{tabular}
+\subsection{With a dictfile and one missing file}
+\begin{tabular}{|c|c|}
+\hline
+Command line &
+wordgrep dictfile fileAA\\
+\hline
+dictfile content &Never mind\\
+\hline
+file(s) content & Never mind\\
+\hline
+Error output &
+fileAA is missing\\
+\hline
+Standard output &No output\\
+\hline
+\end{tabular}
+
+\subsection{With a dictfile, one missing file and at least one existing file}
+\begin{tabular}{|c|c|}
+\hline
+Command line &
+wordgrep dictfile fileAA fileB\\
+\hline
+dictfile content &
+Toto\\
+&TITI\\
+\hline
+file(s) content & \begin{bf}fileAA missing\end{bf}\\
+&\begin{bf}fileB\end{bf}\\
+&Toto + Toto = Toto's head\\
+&Funny isn't it?\\
+\hline
+Error output &
+fileAA is missing\\
+\hline
+Standard output &Toto + Toto = Toto's head\\
+\hline
+\end{tabular}
+\subsection{Parsing validation}
+\begin{tabular}{|c|c|}
+\hline
+Command line &
+wordgrep dictfileA fileD\\
+\hline
+dictfile content &
+Toto\\
+&TITI\\
+&   some\\
+&\\
+&World is mine\\
+&\# Funny\\
+&averybigwordsosolongthatitswillbeignored\\
+&don't\\
+\hline
+file(s) content & I like Toto's joke.\\
+&However, some on them are not funny.\\
+&Toto + Toto = Toto's head\\
+&Funny isn't it? World is mine !!!\\
+&I don't think so.\\
+\hline
+Error output &
+The following dictfile entries are ignored:\\
+&World is mine\\
+&averybigwordsosolongthatitswillbeignored\\
+\hline
+Standard output &
+However, some on them are not funny.\\
+&Toto + Toto = Toto's head\\
+&I don't think so.\\
+\hline
+\end{tabular}
+\subsection{Big data testing}
+To complete...
+
+\section{Implementation}
+\subsection{function parseDictionary}
+This function is used to parse and load the dictionary content in memory.
+\subsubsection{Words storage}
+Words are stored in memory, concatened, and separed by a pipe. That way permit to use the strstr function on the words list.\\
+Alternative is to manage an array of char*. However the grep operation would be more time consumming (but it permits to use the full memory capacity).\\
+Memory is allocated first for a "big" size. and then reallocated each time it's necessary for a defined size (that doesn't equal to the size of the word to store).\\
+Alternative is to reallocate the memory for each word, but this lead to poor performances and a worst memory fragmentation.
+\subsubsection{Dictionnary file reading and filtering}
+Dictionnary file is read line by line. The variable used to store the line is size limited abitrary. This will be a known limitation.\\
+Lines are left and right trimed before tested.\\
+Empty lines are ignored.\\
+Lines beginning with a "\#" are ignored.\\
+Lines containing a white space are ignored with a warning message.
+\subsubsection{Dictionnary context}
+The context of the dictionnary contains:
+\begin{itemize}
+\item The number of words stored
+\item The size of the biggest word
+\end{itemize}
+
+\subsection{function openInput}
+\subsection{function readInput}
+This function extracts data from input flux. The data is read character by character (getc function)
+The character is stored in the current word.
+When a white space is read then
+If the current line doesn't contain a dictionnary word, then call the grepWord function
+Clear the current word and begin a new one
+When a new line is read:
+If the current line contains a dictionnary word, then go back to the beginning of the line (fsetpos function) et write the line (fwrite)
+Store the position in the file (fgetpos function).
+When input flux is ended then exit the function
+
+\subsection{function grepWord}
+This function handle a single full word and check its existence in the dictionnary.
+The word is stored between two pipes and then, the function strstr is used.
+Returns "True" if word is found in the dictionnary, else "False".
+
+\section{Improvement}
+
+\section{Packaging}
+\end{document}
