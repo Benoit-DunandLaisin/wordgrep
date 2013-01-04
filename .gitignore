@@ -1,0 +1,10 @@
+latex/*.aux
+latex/*.log
+latex/*.pdf
+latex/*.synctex.gz
+wordgrep/bin
+wordgrep/obj
+wordgrep/cachegrind*
+wordgrep/gmon.out
+wordgrep/Valgrind*
+
