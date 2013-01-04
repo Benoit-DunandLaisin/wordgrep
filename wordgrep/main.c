@@ -21,15 +21,12 @@ struct dictionnary
 
 /* Load and parse a file as dictionnary */
 int parseDictionnary(struct dictionnary *pDict, const char *pDictFile);
-
 /* Check the existence of a word in the dictionnary */
-int grepWord(const struct dictionnary *pDict, const char *pWord);
-
+int grepWord(const struct dictionnary *pDict, const char *pWord, const int bFreeMemory);
 /* Check the existence of a word in a dictionnary block */
 int grepWordInBlocks(const struct dictionnary_block *pBlock, const char *sSearched);
 /* Read an input and wordgrep it*/
-int readInput(const struct dictionnary *pDict, FILE *fInput);
-
+int readInput(const struct dictionnary *pDict, FILE *fInput, const int bFreeMemory);
 
 /******* MAIN ******/
 int main(int argc, char *argv[])
@@ -65,7 +62,7 @@ int main(int argc, char *argv[])
 #ifdef SHOW_DEBUG
             fprintf(stderr,"Start reading standard input\n");
 #endif
-            readInput(&myDict, stdin);
+            readInput(&myDict, stdin, 0);
         }
         else
         {
@@ -81,7 +78,7 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    readInput(&myDict, fFileInput);
+                    readInput(&myDict, fFileInput, 0);
                     fclose(fFileInput);
                 }
             }
@@ -89,6 +86,16 @@ int main(int argc, char *argv[])
 #ifdef SHOW_DEBUG
         fprintf(stderr,"End good main function\n");
 #endif
+        readInput(NULL,NULL,1);
+        grepWord(NULL,NULL,1);
+        if (myDict.pHead != NULL)
+        {
+            if (myDict.pHead->pWordList != NULL)
+            {
+                free(myDict.pHead->pWordList);
+            }
+            free(myDict.pHead);
+        }
         return 0;
     }
 }
@@ -134,6 +141,7 @@ int parseDictionnary(struct dictionnary *pDict, const char *pDictFile)
     pCurrentBlock=pDict->pHead;
     pCurrentBlock->iMaxMemory=0;
     pCurrentBlock->iUsedMemory=0;
+    pCurrentBlock->pWordList=NULL;
     bFlags=0x02;
     while(!feof(fDictFile))
     {
@@ -267,7 +275,7 @@ int parseDictionnary(struct dictionnary *pDict, const char *pDictFile)
     }
 }
 
-int grepWord(const struct dictionnary *pDict, const char *pWord)
+int grepWord(const struct dictionnary *pDict, const char *pWord, const int bFreeMemory)
 {
     /* Check the existence of a word in the dictionnary
         *pDict = Dictionnary to search in
@@ -276,6 +284,17 @@ int grepWord(const struct dictionnary *pDict, const char *pWord)
      */
     static char *sSearched = NULL;
 
+    if (bFreeMemory)
+    {
+#ifdef SHOW_DEBUG
+        fprintf(stderr,"Free memory used to store searched word\n");
+#endif
+        if (sSearched != NULL)
+        {
+            free(sSearched);
+        }
+        return 0;
+    }
     if ((pDict == NULL) || (pWord == NULL))
     {
         fprintf(stderr,"grepWord doesn't accept NULL parameter(s).\n");
@@ -290,7 +309,7 @@ int grepWord(const struct dictionnary *pDict, const char *pWord)
 #ifdef SHOW_DEBUG
         fprintf(stderr,"Allocating memory of %d char(s) to store searched word\n",(pDict->iBiggestWord+2));
 #endif
-        sSearched= (char *) malloc((pDict->iBiggestWord+2)*sizeof(char));
+        sSearched= (char *) malloc((pDict->iBiggestWord+3)*sizeof(char));
         if (sSearched == NULL)
         {
             fprintf(stderr,"Not enough memory\n");
@@ -351,11 +370,12 @@ int grepWordInBlocks(const struct dictionnary_block *pBlock, const char *sSearch
     }
 }
 
-int readInput(const struct dictionnary *pDict, FILE *fInput)
+int readInput(const struct dictionnary *pDict, FILE *fInput, const int bFreeMemory)
 {
     /* Read word by word the input and grep it into stdout
         *pDict = Dictionnary to search in
         *fInput = Input data
+        bFreeMemory = 1 to free memory used by pWord
     */
     static char *pWord = NULL;
     int iLength;
@@ -363,6 +383,17 @@ int readInput(const struct dictionnary *pDict, FILE *fInput)
     fpos_t StartPos, CurrentPos;
     int iLineIsGrep;
 
+    if (bFreeMemory)
+    {
+#ifdef SHOW_DEBUG
+        fprintf(stderr,"Free memory used to store input word\n");
+#endif
+        if (pWord != NULL)
+        {
+            free(pWord);
+        }
+        return 0;
+    }
     if ((fInput == NULL) || (pDict == NULL))
     {
         fprintf(stderr,"readInput doesn't accept NULL parameter(s).\n");
@@ -373,7 +404,7 @@ int readInput(const struct dictionnary *pDict, FILE *fInput)
 #ifdef SHOW_DEBUG
         fprintf(stderr,"Allocating memory of %d char(s) to store input word\n",(pDict->iBiggestWord+1));
 #endif
-        pWord= (char *) calloc((pDict->iBiggestWord+1)*sizeof(char),'\0');
+        pWord= (char *) calloc((pDict->iBiggestWord+2),sizeof(char));
         if (pWord == NULL)
         {
             fprintf(stderr,"Not enough memory\n");
@@ -417,7 +448,7 @@ int readInput(const struct dictionnary *pDict, FILE *fInput)
                 if (iLength <= pDict->iBiggestWord)
                 {
                     /* Bigger than the biggest word of the dictionnary */
-                    iLineIsGrep=!grepWord(pDict,pWord);
+                    iLineIsGrep=!grepWord(pDict,pWord,0);
                     if (iLineIsGrep)
                     {
                         /* print the beginning of the line */
